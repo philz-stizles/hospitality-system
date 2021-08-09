@@ -3,21 +3,25 @@
 ## Table of contents
 
 1. [Introduction](#introduction)
-2. [TypeScript Installation](##paragraph1)
-3. [Another paragraph](#paragraph2)
+2. [TypeScript Installation](#typescript)
+3. [Jest Installation](#jest)
+4. [How to Run Tests](#paragraph2)
+5. [API Docs](#api)
 
-## This is the introduction
+## Introduction
 
 Some introduction text, formatted in heading 2 style
 
-## Some paragraph <a name="paragraph1"></a>
+## Typescript Installation
 
 The first paragraph text
 
-### Sub paragraph <a name="subparagraph1"></a>
+## Jest
 
-This is a sub paragraph, formatted in heading 3 style
+## How to Run Tests
 
-## paragraph1
+The second paragraph text
+
+## API Docs<a name="api"></a>
 
 The second paragraph text
