@@ -2,11 +2,11 @@
 
 ## Table of contents
 
-1. [Introduction](#introduction)
-2. [TypeScript Installation](#typescript)
-3. [Jest Installation](#jest)
-4. [How to Run Tests](#paragraph2)
-5. [API Docs](#api-docs)
+[1. Introduction](#introduction)
+[2. TypeScript Installation](#typescript-installation)
+[3. Jest Installation](#jest-installation)
+[4. How to Run Tests](#paragraph2)
+[5. API Docs](#api-docs)
 
 ## Introduction
 
@@ -20,10 +20,10 @@ Some introduction text, formatted in heading 2 style
   npm install -g typescript
   ```
 
-- Generate default typescript file(i.e. tsconfig.json) in project:
+- Generate default typescript config file(i.e. tsconfig.json) in project:
 
   ```bash
-  tsc --init
+  npx tsc --init
   ```
 
 - Install typescript dependencies:
@@ -34,14 +34,48 @@ Some introduction text, formatted in heading 2 style
 
 - Configure package.json:
 
-  ```node
+  ```json
   "scripts": {
     "start": "ts-node-dev src/index.ts",
     ...
   },
   ```
 
-## Jest
+## Jest Installation
+
+- Install dependencies:
+
+  ```bash
+  npm install -D jest ts-jest @types/jest supertest @types/supertest mongodb-memory-server
+  ```
+
+- Generate default jest configuration file (i.e. 'jest.config.js'):
+
+  ```bash
+  npx ts-jest config:init
+  ```
+
+- Add your configs to 'jest.config.js'
+
+  ```js
+  module.exports = {
+    ...,
+    setupFilesAfterEnv: ['./src/test/setup.ts'],
+  }
+  ```
+
+- Configure 'package.json':
+
+  ```json
+  "scripts": {
+    ...,
+    "test": "jest",
+    "test:watch": "jest --watchAll --no-cache",
+    "test:coverage": "jest --coverage"
+    },
+    ...
+  },
+  ```
 
 ## How to Run Tests
 
