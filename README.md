@@ -2,17 +2,17 @@
 
 ## Table of contents
 
-[1. Introduction](#introduction)
-[2. Assumptions](#assumptions)
-[3. Observations & Modifications](#observations-&-modifications)
-[4. End Points of Interest](#end-points-of-interest)
-[5. Corner Cases](#corner-cases)
-[6. How to Run the Application](#how-to-run-the-application)
-[7. How to Run Tests](#how-to-run-tests)
-[8. Overstay Fee Algorithm(Important)](#overstay-fee-algorithm)
-[9. TypeScript Installation(Optional)](#typescript-installation)
-[10. Jest Installation(Optional)](#jest-installation)
-[11. API Docs(Optional)](#api-docs)
+1. [Introduction](#introduction)
+2. [Assumptions](#assumptions)
+3. [Observations & Modifications](#observations-&-modifications)
+4. [End Points of Interest](#end-points-of-interest)
+   [5. Corner Cases](#corner-cases)
+   [6. How to Run the Application](#how-to-run-the-application)
+   [7. How to Run Tests](#how-to-run-tests)
+   [8. Overstay Fee Algorithm(Important)](#overstay-fee-algorithm)
+   [9. TypeScript Installation(Optional)](#typescript-installation)
+   [10. Jest Installation(Optional)](#jest-installation)
+   [11. API Docs(Optional)](#api-docs)
 
 ## Introduction
 
