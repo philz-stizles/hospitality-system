@@ -1,5 +1,5 @@
 import express from 'express'
-import { list } from '../../controllers/room.controller'
+import { list } from '../../controllers/v1/room.controller'
 
 const router = express.Router()
 

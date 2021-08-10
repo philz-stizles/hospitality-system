@@ -2,14 +2,11 @@ import express from 'express'
 import {
   calcOverstayByReservation,
   calcOverstayByCustomer,
-} from '../../controllers/admin.controller'
+} from '../../controllers/v1/admin.controller'
 
 const router = express.Router()
 
-router.post(
-  '/api/v1/admin/calcOverstayByReservation',
-  calcOverstayByReservation
-)
-router.post('/api/v1/admin/calcOverstayByCustomer', calcOverstayByCustomer)
+router.get('/api/v1/admin/calcOverstayByReservation', calcOverstayByReservation)
+router.get('/api/v1/admin/calcOverstayByCustomer', calcOverstayByCustomer)
 
 export default router

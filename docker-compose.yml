@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  hospitality-system:
+    container_name: hospitality-system
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev # The name of the docker config file
+      context: ./ # Where the docker config file is located
+    volumes:
+      # - /app/node_modules
+      - ./:/app
+    ports:
+      - '3000:3000'
+    links:
+      - mongo
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/HospitalityDevDB
+      - JWT_AUTH_SECRET=nh7dd4456vhbgkjvdDWQZXMKOY6FDEAmkbZMOPI
+  mongo:
+    image: mongo
+    volumes:
+      - ./db:/data/db
+    ports:
+      - '27017:27017'

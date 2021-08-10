@@ -3,7 +3,13 @@ import app from '../../app'
 // import Ticket from '../../models/reservation.model'
 
 describe('Admin routes', () => {
-  describe('Calculate overstay', () => {
+  describe('Calculate overstay by reservation', () => {
+    it('should retrieve a list of all available rooms', () => {
+      expect(true).toEqual(true)
+    })
+  })
+
+  describe('Calculate overstay by customer', () => {
     it('should retrieve a list of all available rooms', () => {
       expect(true).toEqual(true)
     })

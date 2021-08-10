@@ -1,15 +1,15 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { Request, Response, NextFunction } from 'express'
+import jwt from 'jsonwebtoken'
 
 interface UserPayload {
-  id: string;
-  email: string;
+  id: string
+  email: string
 }
 
 declare global {
   namespace Express {
     interface Request {
-      currentUser?: UserPayload;
+      currentUser?: UserPayload
     }
   }
 }
@@ -20,20 +20,20 @@ export const currentUser = (
   next: NextFunction
 ) => {
   if (!req.session?.jwt) {
-    console.log('req.session.jwt is undefined');
-    return next();
+    console.log('req.session.jwt is undefined')
+    return next()
   }
 
   try {
     const payload = jwt.verify(
       req.session.jwt,
-      process.env.JWT_KEY!
-    ) as UserPayload;
-    req.currentUser = payload;
+      process.env.JWT_AUTH_SECRET!
+    ) as UserPayload
+    req.currentUser = payload
   } catch (err) {
-    console.log(err.message);
-    throw err;
+    console.log(err.message)
+    throw err
   }
 
-  return next();
-};
+  return next()
+}
