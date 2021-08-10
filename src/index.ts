@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import chalk from 'chalk'
 import app from './app'
 import dotenv from 'dotenv'
-import { seedRooms, seedUsers } from './models/seeder'
+import { seedRooms, seedUsers, seedReservations } from './models/seeder'
 
 dotenv.config()
 
@@ -29,6 +29,9 @@ const start = async () => {
 
     // Seed users data
     await seedRooms()
+
+    // Seed users data
+    await seedReservations()
   } catch (error) {
     console.error(chalk.red(error.message))
   }

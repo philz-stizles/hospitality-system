@@ -1,15 +1,11 @@
-import { Schema, Types, model, Document } from 'mongoose'
-
-interface IUserRating {
-  star: number
-  postedBy: Types.ObjectId
-}
+import { Schema, model, Document } from 'mongoose'
 
 export interface IReservationDocument extends Document {
   status: string
+  hourly_rate: number
   expected_checkin_time: Date
   expected_checkout_time: Date
-  customer_id: string
+  customer_id: number
   room_type: string
 }
 
@@ -17,10 +13,12 @@ const reservationSchema = new Schema(
   {
     status: {
       type: String,
-      trim: true,
       required: true,
-      maxlength: 32,
-      text: true,
+      default: 'paid',
+    },
+    hourly_rate: {
+      type: Number,
+      required: true,
     },
     expected_checkin_time: {
       type: Date,
@@ -28,10 +26,19 @@ const reservationSchema = new Schema(
     expected_checkout_time: {
       type: Date,
     },
-    customer_id: { type: Types.ObjectId, ref: 'User' },
-    room_type: { type: Types.ObjectId, ref: 'Room' },
+    customer_id: { type: Number, required: [true, 'A customer is required'] },
+    room_type: { type: String, required: [true, 'A room type is required'] },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      transform(_doc, ret) {
+        ret.reservation_id = ret._id
+        delete ret._id
+        delete ret.__v
+      },
+    },
+  }
 )
 
 const Reservation = model<IReservationDocument>(
