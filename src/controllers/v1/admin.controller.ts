@@ -34,22 +34,27 @@ export const calcOverstayByReservation = async (
     throw new NotFoundError()
   }
 
+  // Extract week daily rates from room
   const { weekday_percent, weekend_percent } = existingRoom
 
   const now = new Date()
   const expectedCheckout = new Date(expected_checkout_time)
 
+  let overdueFee = 0
+
   if (now.getTime() <= expectedCheckout.getTime()) {
     return res.json({
       status: true,
       data: {
+        customer_id,
+        overdue_fee: overdueFee,
+        extra_hours: 0,
         expected_checkout_time,
         hours_left: (expectedCheckout.getTime() - now.getTime()) / 3600000,
       },
       message: 'Reservation is still active',
     })
   } else {
-    let overdueFee = 0
     const overdueHours = Math.ceil(
       (now.getTime() - expectedCheckout.getTime()) / 3600000
     )
@@ -99,8 +104,6 @@ export const calcOverstayByCustomer = async (
   res: Response
 ): Promise<Response | void> => {
   const { customerId } = req.query
-
-  console.log(customerId)
 
   // Check if customer id query param is undefined
   if (!customerId) {

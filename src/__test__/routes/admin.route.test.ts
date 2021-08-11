@@ -1,98 +1,135 @@
 import request from 'supertest'
 import app from '../../app'
-// import Ticket from '../../models/reservation.model'
+import Reservation from '../../models/reservation.model'
+import Room from '../../models/room.model'
+
+const addDays = (noOfDays: number) => {
+  const tmpDate = new Date()
+  tmpDate.setDate(tmpDate.getDate() + noOfDays)
+  return tmpDate
+}
 
 describe('Admin routes', () => {
   describe('Calculate overstay by reservation', () => {
-    it('has a route handler listening to /api/v1/tickets for post requests', async () => {
-      const response = await request(app).get('/api/v1/tickets').send({})
+    it('has a route handler listening to /api/v1/admin/calcOverstayByReservation for get requests', async () => {
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByReservation'
+      )
       expect(response.status).not.toEqual(404)
+    })
+
+    it('returns an error if no reservation id is provided', async () => {
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByReservation'
+      )
+      expect(response.status).toEqual(400)
+    })
+
+    it('returns an error if an empty reservation id is provided', async () => {
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByReservation?reservationId='
+      )
+      expect(response.status).toEqual(400)
+    })
+
+    it('returns an error if the provided reservation id does not exist', async () => {
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByReservation?reservationId=6112eddade95c0002303ffc9'
+      )
+      expect(response.status).toEqual(404)
+    })
+
+    it('returns an error if the provided room type does not exist', async () => {
+      const createdReservation = await new Reservation({
+        room_type: 'deluxe',
+        customer_id: '12323',
+        hourly_rate: 230000,
+        expected_checkin_time: '2020-12-12 12:00',
+        expected_checkout_time: '2021-01-01 11:00',
+      }).save()
+
+      const response = await request(app).get(
+        `/api/v1/admin/calcOverstayByReservation?reservationId=${createdReservation._id}`
+      )
+      expect(response.status).toEqual(404)
+    })
+
+    it('does not return an error if the provided reservation id and room type exist', async () => {
+      await new Room({
+        room_type: 'deluxe',
+        hourly_rate: 150000,
+        weekday_percent: 7,
+        weekend_percent: 10,
+      }).save()
+
+      const createdReservation = await new Reservation({
+        room_type: 'deluxe',
+        customer_id: '12323',
+        hourly_rate: 230000,
+        expected_checkin_time: '2020-12-12 12:00',
+        expected_checkout_time: '2021-01-01 11:00',
+      }).save()
+
+      const response = await request(app).get(
+        `/api/v1/admin/calcOverstayByReservation?reservationId=${createdReservation._id}`
+      )
+      expect(response.status).not.toEqual(404)
+    })
+
+    it('should have 0 overstay fee and 0 extra hours if expected checkout is not exceeded', async () => {
+      await new Room({
+        room_type: 'deluxe',
+        hourly_rate: 150000,
+        weekday_percent: 7,
+        weekend_percent: 10,
+      }).save()
+
+      const createdReservation = await new Reservation({
+        room_type: 'deluxe',
+        customer_id: '12323',
+        hourly_rate: 230000,
+        expected_checkin_time: '2020-12-12 12:00',
+        expected_checkout_time: addDays(1).toISOString(),
+      }).save()
+
+      const response = await request(app).get(
+        `/api/v1/admin/calcOverstayByReservation?reservationId=${createdReservation._id}`
+      )
+      const { status, data } = response.body
+      expect(response.status).toEqual(200)
+      expect(status).toEqual(true)
+      expect(data.overdue_fee).toEqual(0)
+      expect(data.extra_hours).toEqual(0)
     })
   })
 
   describe('Calculate overstay by customer', () => {
-    it('should retrieve a list of all available rooms', () => {
-      expect(true).toEqual(true)
+    it('has a route handler listening to /api/v1/admin/calcOverstayByCustomer for get requests', async () => {
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByCustomer'
+      )
+      expect(response.status).not.toEqual(404)
+    })
+
+    it('returns an error if no customer id is provided', async () => {
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByCustomer'
+      )
+      expect(response.status).toEqual(400)
+    })
+
+    it('returns an error if an empty customer id is provided', async () => {
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByCustomer?customerId='
+      )
+      expect(response.status).toEqual(400)
+    })
+
+    it('returns an error if the customer id is not a number', async () => {
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByCustomer?customerId=xyz'
+      )
+      expect(response.status).toEqual(400)
     })
   })
 })
-
-// describe('Create ticket route', () => {
-//   it('has a route handler listening to /api/tickets for post requests', async () => {
-//     const response = await request(app).post('/api/tickets').send({})
-//     expect(response.status).not.toEqual(404)
-//   })
-
-//   it('can only be accessed if the user is authenticated', async () => {
-//     await request(app).post('/api/tickets').send({}).expect(401)
-//   })
-
-//   it('returns a status other than 401 if the user is authenticated', async () => {
-//     const cookie = global.signin()
-//     console.log(cookie)
-//     const response = await request(app)
-//       .post('/api/tickets')
-//       .set('Cookie', cookie)
-//       .send({})
-//     console.log('response.body', response.body)
-//     expect(response.status).not.toEqual(401)
-//   })
-
-//   it('returns an error if an invalid title is provided', async () => {
-//     await request(app)
-//       .post('/api/tickets')
-//       .set('Cookie', global.signin())
-//       .send({ title: '', price: 10 })
-//       .expect(400)
-//     await request(app)
-//       .post('/api/tickets')
-//       .set('Cookie', global.signin())
-//       .send({ price: 10 })
-//       .expect(400)
-//   })
-
-//   it('returns an error if an invalid price is provided', async () => {
-//     await request(app)
-//       .post('/api/tickets')
-//       .set('Cookie', global.signin())
-//       .send({ title: 'Test title', price: -10 })
-//       .expect(400)
-//     await request(app)
-//       .post('/api/tickets')
-//       .set('Cookie', global.signin())
-//       .send({ title: 'Test title' })
-//       .expect(400)
-//   })
-
-//   it('creates a new ticket if valid inputs are provided', async () => {
-//     let tickets = await Ticket.find({})
-//     expect(tickets.length).toEqual(0)
-
-//     const newTicket = { title: 'Test title', price: 10 }
-
-//     await request(app)
-//       .post('/api/tickets')
-//       .set('Cookie', global.signin())
-//       .send(newTicket)
-//       .expect(201)
-
-//     tickets = await Ticket.find({})
-//     expect(tickets.length).toEqual(1)
-//     expect(tickets[0].title).toEqual(newTicket.title)
-//     expect(tickets[0].price).toEqual(newTicket.price)
-//   })
-
-//   it('publishes an event', async () => {
-//     const newTicket = { title: 'Test title', price: 10 }
-
-//     await request(app)
-//       .post('/api/tickets')
-//       .set('Cookie', global.signin())
-//       .send(newTicket)
-//       .expect(201)
-
-//     // console.log(natsWrapper);
-
-//     expect(natsWrapper.client.publish).toHaveBeenCalled()
-//   })
-// })

@@ -1,27 +1,35 @@
 import request from 'supertest'
 import app from '../../app'
+import Reservation from '../../models/reservation.model'
 
 describe('Reservation routes', () => {
   describe('GET api/v1/reservations', () => {
-    it('should retrieve a list of all available reservations', () => {
-      expect(true).toEqual(true)
+    it('should retrieve a list of all available reservations', async () => {
+      await new Reservation({
+        room_type: 'regular',
+        customer_id: '12323',
+        hourly_rate: 230000,
+        expected_checkin_time: '2020-12-12 12:00',
+        expected_checkout_time: '2021-01-01 11:00',
+      }).save()
+
+      await new Reservation({
+        room_type: 'classic',
+        customer_id: '12323',
+        hourly_rate: 230000,
+        expected_checkin_time: '2020-12-12 12:00',
+        expected_checkout_time: '2021-01-01 11:00',
+      }).save()
+
+      const response = await request(app)
+        .get(`/api/v1/reservations`)
+        .send()
+        .expect(200)
+
+      const { status, data } = response.body
+
+      expect(status).toEqual(true)
+      expect(data.length).toEqual(2)
     })
   })
 })
-
-// const createTicket = (title: string) =>
-//   request(app)
-//     .post('/api/tickets')
-//     .set('Cookie', global.signin())
-//     .send({ title, price: 20 })
-//     .expect(201);
-
-// describe('List tickets route', () => {
-//   it('can fetch a list of tickets', async () => {
-//     await createTicket('Test title 1');
-//     await createTicket('Test title 2');
-//     await createTicket('Test title 3');
-//     const response = await request(app).get(`/api/tickets`).send().expect(200);
-//     expect(response.body.length).toEqual(3);
-//   });
-// });

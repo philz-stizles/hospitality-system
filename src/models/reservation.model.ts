@@ -22,9 +22,11 @@ const reservationSchema = new Schema(
     },
     expected_checkin_time: {
       type: Date,
+      required: true,
     },
     expected_checkout_time: {
       type: Date,
+      required: true,
     },
     customer_id: { type: Number, required: [true, 'A customer is required'] },
     room_type: { type: String, required: [true, 'A room type is required'] },

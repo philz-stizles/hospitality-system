@@ -107,11 +107,12 @@ This implementation is based on the following assumptions:
     For Example:
 
     ```lang-http
-    GET http://localhost:3000/api/v1/admin/calcOverstayByCustomer?customerId=
+    GET http://localhost:3000/api/v1/admin/calcOverstayByCustomer?customerId=12323
     ```
 
 ## How to Run Tests
 
+- Open the project in a separate terminal
 - Run tests:
 
   ```bash
@@ -125,6 +126,11 @@ This implementation is based on the following assumptions:
   ```
 
 ## Overstay Fee Algorithm
+
+Note: The following algorithm can be easily simplified or modified. For example, many
+of the verbs within the algorithm can be extracted into their on methods and reused
+to conform with the laws of Segregation etc. However for demonstration purposes, so as
+to be able to visualize from top to bottom
 
 ```lang-js
   if (now.getTime() <= expectedCheckout.getTime()) {
