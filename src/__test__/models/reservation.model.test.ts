@@ -38,7 +38,7 @@ describe('Reservation Model', () => {
     }
   })
 
-  it('should throw an error on save if the fullname field is empty', async () => {
+  it('should throw an error on save if the room_type field is empty', async () => {
     try {
       await new Reservation({
         room_type: '',

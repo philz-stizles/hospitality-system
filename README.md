@@ -86,21 +86,29 @@ This implementation is based on the following assumptions:
 
 - Calculate Overstay fee:
 
-  - Option 1: Using reservation_id
+  - Option 1: Using reservation_id, use the following endpoint to retrieve a list of seeded rooms:-
 
-    - Use the following endpoint to retrieve a list of seeded rooms:-
+    ```lang-http
+    GET http://localhost:3000/api/v1/admin/calcOverstayByReservation?reservationId=insert-reservation_id-here
+    ```
 
-      ```lang-http
-      GET http://localhost:3000/api/v1/admin/calcOverstayByReservation?reservationId=insert-reservation_id-here
-      ```
+    For Example:
 
-  - Option 2: Using customer_id
+    ```lang-http
+    GET http://localhost:3000/api/v1/admin/calcOverstayByReservation?reservationId=61128fd10f5442a360ebfd8d
+    ```
 
-    - Use the following endpoint to retrieve a list of seeded rooms:-
+  - Option 2: Using customer_id, use the following endpoint to retrieve a list of seeded rooms:-
 
-      ```lang-http
-      GET http://localhost:3000/api/v1/admin/calcOverstayByCustomer?customerId=insert-customer_id-here
-      ```
+    ```lang-http
+    GET http://localhost:3000/api/v1/admin/calcOverstayByCustomer?customerId=insert-customer_id-here
+    ```
+
+    For Example:
+
+    ```lang-http
+    GET http://localhost:3000/api/v1/admin/calcOverstayByCustomer?customerId=
+    ```
 
 ## How to Run Tests
 

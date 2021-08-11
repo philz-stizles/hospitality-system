@@ -20,7 +20,6 @@ export const currentUser = (
   next: NextFunction
 ) => {
   if (!req.session?.jwt) {
-    console.log('req.session.jwt is undefined')
     return next()
   }
 

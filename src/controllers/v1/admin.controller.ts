@@ -1,6 +1,9 @@
 import { Request, Response } from 'express'
-import { NotFoundError } from '../../errors'
-import Reservation from '../../models/reservation.model'
+import { FilterQuery } from 'mongoose'
+import { BadRequestError, NotFoundError } from '../../errors'
+import Reservation, {
+  IReservationDocument,
+} from '../../models/reservation.model'
 import Room from '../../models/room.model'
 import { addHoursToDate } from '../../utils/date.utils'
 
@@ -8,102 +11,86 @@ export const calcOverstayByReservation = async (
   req: Request,
   res: Response
 ): Promise<Response | void> => {
-  try {
-    const { reservationId } = req.query
+  const { reservationId } = req.query
 
-    console.log(reservationId)
+  // Check if customer id query param is undefined
+  if (!reservationId) {
+    throw new BadRequestError('Reservation id is required')
+  }
 
-    // Check if reservation exists
-    const existingReservation = await Reservation.findById(reservationId)
-    if (!existingReservation) {
-      throw new NotFoundError()
-    }
+  // Check if reservation exists
+  const existingReservation = await Reservation.findById(reservationId)
+  if (!existingReservation) {
+    throw new NotFoundError()
+  }
 
-    const { customer_id, room_type, expected_checkout_time } =
-      existingReservation
+  const { customer_id, room_type, expected_checkout_time } = existingReservation
 
-    // Check if room exists
-    const existingRoom = await Room.findOne({
-      room_type,
+  // Check if room exists
+  const existingRoom = await Room.findOne({
+    room_type,
+  })
+  if (!existingRoom) {
+    throw new NotFoundError()
+  }
+
+  const { weekday_percent, weekend_percent } = existingRoom
+
+  const now = new Date()
+  const expectedCheckout = new Date(expected_checkout_time)
+
+  if (now.getTime() <= expectedCheckout.getTime()) {
+    return res.json({
+      status: true,
+      data: {
+        expected_checkout_time,
+        hours_left: (expectedCheckout.getTime() - now.getTime()) / 3600000,
+      },
+      message: 'Reservation is still active',
     })
-    if (!existingRoom) {
-      throw new NotFoundError()
-    }
+  } else {
+    let overdueFee = 0
+    const overdueHours = Math.ceil(
+      (now.getTime() - expectedCheckout.getTime()) / 3600000
+    )
 
-    const { weekday_percent, weekend_percent } = existingRoom
+    let currentOverstayedDate = expectedCheckout
 
-    const now = new Date()
-    const expectedCheckout = new Date(expected_checkout_time)
-    console.log('now', now)
-    console.log('expectedCheckout', expectedCheckout)
-    console.log(now.getTime())
-    console.log(expectedCheckout.getTime())
-    if (now.getTime() <= expectedCheckout.getTime()) {
-      return res.json({
-        status: true,
-        data: {
-          expected_checkout_time,
-          hours_left: (expectedCheckout.getTime() - now.getTime()) / 3600000,
-        },
-        message: 'Reservation is still active',
-      })
-    } else {
-      let overdueFee = 0
-      const extraHours = Math.ceil(
-        (now.getTime() - expectedCheckout.getTime()) / 3600000
-      )
+    const weekends = [0, 6]
 
-      let currentOverstayedDate = expectedCheckout
+    // for each hour
+    for (let hr = overdueHours; hr > 0; hr--) {
+      // initialize current hour fee
+      let currentHourFee = 0
 
-      const weekends = [0, 6]
+      // add hour to current overstayed date
+      currentOverstayedDate = addHoursToDate(currentOverstayedDate, 1)
 
-      console.log('weekends', weekends)
+      // check the day of the week
+      const dayOfWeek = currentOverstayedDate.getDay()
 
-      console.log('hourly_rate', existingReservation.hourly_rate)
-
-      // for each hour
-      for (let hr = extraHours; hr > 0; hr--) {
-        // initialize current hour fee
-        let currentHourFee = 0
-
-        // add hour to current overstayed date
-        currentOverstayedDate = addHoursToDate(currentOverstayedDate, 1)
-
-        console.log('currentOverstayedDate', currentOverstayedDate)
-
-        // check the day of the week
-        const dayOfWeek = currentOverstayedDate.getDay()
-        console.log('dayOfWeek', dayOfWeek)
-
-        // make calculations based on the day of the week
-        if (weekends.includes(dayOfWeek)) {
-          currentHourFee =
-            existingReservation.hourly_rate * (weekend_percent / 100)
-          console.log('weekend_percent', weekend_percent)
-          console.log('weekend currentHourFee', currentHourFee)
-        } else {
-          currentHourFee =
-            existingReservation.hourly_rate * (weekday_percent / 100)
-          console.log('weekday_percent', weekday_percent)
-          console.log('weekday currentHourFee', currentHourFee)
-        }
-
-        // add to grand total
-        overdueFee += currentHourFee
+      // make calculations based on the day of the week
+      if (weekends.includes(dayOfWeek)) {
+        currentHourFee =
+          existingReservation.hourly_rate * (weekend_percent / 100)
+      } else {
+        currentHourFee =
+          existingReservation.hourly_rate * (weekday_percent / 100)
       }
 
-      return res.json({
-        status: true,
-        data: {
-          customer_id,
-          extra_hours: extraHours,
-          overdue_fee: overdueFee,
-        },
-        message: 'Success',
-      })
+      // add to grand total
+      overdueFee += currentHourFee
     }
-  } catch (err) {
-    console.log(err)
+
+    return res.json({
+      status: true,
+      data: {
+        customer_id,
+        extra_hours: overdueHours,
+        overdue_fee: overdueFee,
+      },
+      message: 'Reservation over-stay fee retrieved successfully',
+    })
   }
 }
 
@@ -111,48 +98,59 @@ export const calcOverstayByCustomer = async (
   req: Request,
   res: Response
 ): Promise<Response | void> => {
-  try {
-    const { customerId } = req.query
+  const { customerId } = req.query
 
-    console.log(customerId)
+  console.log(customerId)
 
-    // Check if reservation exists
-    const existingReservation = await Reservation.findById(customerId)
-    if (!existingReservation) {
-      throw new NotFoundError()
-    }
+  // Check if customer id query param is undefined
+  if (!customerId) {
+    throw new BadRequestError('Customer id is required')
+  }
 
-    const { customer_id, room_type, expected_checkout_time } =
-      existingReservation
+  const parsed_customer_id = parseInt(customerId as string)
+
+  // Check if customer id query param is not a number
+  if (isNaN(parsed_customer_id)) {
+    throw new BadRequestError('Customer id must be a number')
+  }
+
+  const filter: FilterQuery<IReservationDocument> = {
+    customer_id: parsed_customer_id,
+  }
+  // Check if reservation exists
+  const customerReservations = await Reservation.find(filter)
+
+  let total_overdue_hours = 0
+  let total_overdue_fee = 0
+  const customerReservationDetails: any = []
+
+  for (const reservation of customerReservations) {
+    const { room_type, expected_checkout_time, _id } = reservation
 
     // Check if room exists
     const existingRoom = await Room.findOne({
       room_type,
     })
     if (!existingRoom) {
-      throw new NotFoundError()
+      continue
     }
 
     const { weekday_percent, weekend_percent } = existingRoom
 
     const now = new Date()
     const expectedCheckout = new Date(expected_checkout_time)
-    console.log('now', now)
-    console.log('expectedCheckout', expectedCheckout)
-    console.log(now.getTime())
-    console.log(expectedCheckout.getTime())
+    let overdueHours = 0
+    let overdueFee = 0
+
     if (now.getTime() <= expectedCheckout.getTime()) {
-      return res.json({
-        status: true,
-        data: {
-          expected_checkout_time,
-          hours_left: (expectedCheckout.getTime() - now.getTime()) / 3600000,
-        },
-        message: 'Reservation is still active',
+      customerReservationDetails.push({
+        reservation_id: _id,
+        overdueHours,
+        overdueFee,
       })
+      continue
     } else {
-      let overdueFee = 0
-      const extraHours = Math.ceil(
+      overdueHours = Math.ceil(
         (now.getTime() - expectedCheckout.getTime()) / 3600000
       )
 
@@ -160,52 +158,47 @@ export const calcOverstayByCustomer = async (
 
       const weekends = [0, 6]
 
-      console.log('weekends', weekends)
-
-      console.log('hourly_rate', existingReservation.hourly_rate)
-
       // for each hour
-      for (let hr = extraHours; hr > 0; hr--) {
+      for (let hr = overdueHours; hr > 0; hr--) {
         // initialize current hour fee
         let currentHourFee = 0
 
         // add hour to current overstayed date
         currentOverstayedDate = addHoursToDate(currentOverstayedDate, 1)
 
-        console.log('currentOverstayedDate', currentOverstayedDate)
-
         // check the day of the week
         const dayOfWeek = currentOverstayedDate.getDay()
-        console.log('dayOfWeek', dayOfWeek)
 
         // make calculations based on the day of the week
         if (weekends.includes(dayOfWeek)) {
-          currentHourFee =
-            existingReservation.hourly_rate * (weekend_percent / 100)
-          console.log('weekend_percent', weekend_percent)
-          console.log('weekend currentHourFee', currentHourFee)
+          currentHourFee = reservation.hourly_rate * (weekend_percent / 100)
         } else {
-          currentHourFee =
-            existingReservation.hourly_rate * (weekday_percent / 100)
-          console.log('weekday_percent', weekday_percent)
-          console.log('weekday currentHourFee', currentHourFee)
+          currentHourFee = reservation.hourly_rate * (weekday_percent / 100)
         }
 
         // add to grand total
         overdueFee += currentHourFee
       }
 
-      return res.json({
-        status: true,
-        data: {
-          customer_id,
-          extra_hours: extraHours,
-          overdue_fee: overdueFee,
-        },
-        message: 'Success',
+      total_overdue_hours += overdueHours
+      total_overdue_fee += overdueFee
+
+      customerReservationDetails.push({
+        reservation_id: _id,
+        overdueHours,
+        overdueFee,
       })
     }
-  } catch (err) {
-    console.log(err)
   }
+
+  res.json({
+    status: true,
+    data: {
+      customer_id: parsed_customer_id,
+      total_overdue_hours,
+      total_overdue_fee,
+      summary: customerReservationDetails,
+    },
+    message: 'Customer over-stay fee retrieved successfully',
+  })
 }

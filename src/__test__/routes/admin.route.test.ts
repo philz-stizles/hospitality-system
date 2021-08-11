@@ -4,8 +4,9 @@ import app from '../../app'
 
 describe('Admin routes', () => {
   describe('Calculate overstay by reservation', () => {
-    it('should retrieve a list of all available rooms', () => {
-      expect(true).toEqual(true)
+    it('has a route handler listening to /api/v1/tickets for post requests', async () => {
+      const response = await request(app).get('/api/v1/tickets').send({})
+      expect(response.status).not.toEqual(404)
     })
   })
 
