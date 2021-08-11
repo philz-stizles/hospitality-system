@@ -9,6 +9,12 @@ const addDays = (noOfDays: number) => {
   return tmpDate
 }
 
+const removeDays = (noOfDays: number) => {
+  const tmpDate = new Date()
+  tmpDate.setDate(tmpDate.getDate() - noOfDays)
+  return tmpDate
+}
+
 describe('Admin routes', () => {
   describe('Calculate overstay by reservation', () => {
     it('has a route handler listening to /api/v1/admin/calcOverstayByReservation for get requests', async () => {
@@ -100,6 +106,32 @@ describe('Admin routes', () => {
       expect(status).toEqual(true)
       expect(data.overdue_fee).toEqual(0)
       expect(data.extra_hours).toEqual(0)
+    })
+
+    it('should not have valid overstay fee and extra hours if expected checkout is exceeded', async () => {
+      await new Room({
+        room_type: 'deluxe',
+        hourly_rate: 150000,
+        weekday_percent: 7,
+        weekend_percent: 10,
+      }).save()
+
+      const createdReservation = await new Reservation({
+        room_type: 'deluxe',
+        customer_id: '12323',
+        hourly_rate: 230000,
+        expected_checkin_time: '2020-12-12 12:00',
+        expected_checkout_time: removeDays(1).toISOString(),
+      }).save()
+
+      const response = await request(app).get(
+        `/api/v1/admin/calcOverstayByReservation?reservationId=${createdReservation._id}`
+      )
+      const { status, data } = response.body
+      expect(response.status).toEqual(200)
+      expect(status).toEqual(true)
+      expect(data.overdue_fee).toBeGreaterThan(0)
+      expect(data.extra_hours).toBeGreaterThan(0)
     })
   })
 
