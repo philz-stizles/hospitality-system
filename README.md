@@ -113,14 +113,20 @@ Thus, such a case must be factored into any algorithm implemented to calculate o
 
 ## How to Run Tests
 
-- Open the project in a separate terminal
-- Run tests:
+- **Open the project in a separate terminal.**
+- **Install dependencies**:
+
+  ```bash
+  npm install
+  ```
+
+- **Run tests**:
 
   ```bash
   npm run test
   ```
 
-- Run tests with coverage:
+- **Run tests with coverage**:
 
   ```bash
   npm run test:coverage
@@ -130,7 +136,7 @@ Thus, such a case must be factored into any algorithm implemented to calculate o
 
 Note: The following algorithm can be easily simplified or modified. For example, many
 of the verbs within the algorithm can be extracted into their on methods and reused
-to conform with the laws of Segregation etc. However for demonstration purposes, so as
+to conform with the laws of Segregation etc. This is for demonstration purposes, so as
 to be able to visualize from top to bottom
 
 ```lang-js
@@ -224,7 +230,7 @@ to be able to visualize from top to bottom
 
 Note: The following algorithm can be easily simplified or modified. For example, many
 of the verbs within the algorithm can be extracted into their on methods and reused
-to conform with the laws of Segregation etc. However for demonstration purposes, so as
+to conform with the laws of Segregation etc. This is for demonstration purposes, so as
 to be able to visualize from top to bottom
 
 ```lang-js
