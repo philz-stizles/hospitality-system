@@ -7,17 +7,19 @@ services:
       dockerfile: Dockerfile # The name of the docker config file
       context: ./ # Where the docker config file is located
     # volumes:
-    # - /app/node_modules
-    # - ./:/app
+    #   # - /app/node_modules
+    #   - ./:/app
     ports:
-      - '3000:3000'
+      - '3000:80'
     links:
       - mongo
     environment:
       - MONGODB_URI=mongodb://mongo:27017/HospitalityDevDB
       - JWT_AUTH_SECRET=nh7dd4456vhbgkjvdDWQZXMKOY6FDEAmkbZMOPI
   mongo:
+    container_name: mongo
     image: mongo
+    restart: always
     volumes:
       - ./db:/data/db
     ports:

@@ -18,6 +18,8 @@
 The hospitality system was built to demonstrate a couple of endpoints created for the purpose of calculating
 overstay fees for customers who have stayed beyond their designated checkout time.
 
+This application was implemented using Node JS and mongoose. However i could have used either .Net Core any other RDBMS
+
 ## Assumptions
 
 This implementation is based on the following assumptions:
@@ -54,7 +56,7 @@ Thus, such a case must be factored into any algorithm implemented to calculate o
 - **Navigate to the project root an run**:
 
   ```bash
-  docker-compose up
+  docker-compose up --build
   ```
 
   When you run the above command, docker will spin up the application container as well as a mongodb container.
@@ -328,14 +330,16 @@ to be able to visualize from top to bottom
 - Install typescript dependencies:
 
   ```bash
-  npm install -D typescript ts-node-dev
+  npm install -D typescript ts-node
   ```
 
 - Configure package.json:
 
   ```json
   "scripts": {
-    "start": "ts-node-dev src/index.ts",
+    "dev": "ts-node src/index.ts",
+    "start": "ts-node dist/index.js",
+    "build": "tsc -p ."
   },
   ```
 

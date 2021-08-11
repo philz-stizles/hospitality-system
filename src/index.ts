@@ -36,8 +36,10 @@ const start = async () => {
     console.error(chalk.red(error.message))
   }
 
-  app.listen(3000, () => {
-    console.log(chalk.green('Listening on port 3000!'))
+  const PORT = process.env.PORT || 3000
+
+  app.listen(PORT, () => {
+    console.log(chalk.green(`Listening on port ${PORT}!`))
   })
 }
 
