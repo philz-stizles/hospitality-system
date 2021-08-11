@@ -7,8 +7,8 @@ services:
       dockerfile: Dockerfile # The name of the docker config file
       context: ./ # Where the docker config file is located
     # volumes:
-    # - /app/node_modules
-    # - ./:/app
+    #   - /app/node_modules
+    #   - ./:/app
     ports:
       - '3000:3000'
     links:

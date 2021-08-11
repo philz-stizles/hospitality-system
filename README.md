@@ -60,7 +60,7 @@ Thus, such a case must be factored into any algorithm implemented to calculate o
   ```
 
   When you run the above command, docker will spin up the application container as well as a mongodb container.
-  You need to wait until all containers are up and running.
+  You need to wait until all containers are up and running. If you are running it for the first time, it will take a while.
 
   Application would be available at:
 

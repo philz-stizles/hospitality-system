@@ -108,7 +108,7 @@ describe('Admin routes', () => {
       expect(data.extra_hours).toEqual(0)
     })
 
-    it('should not have valid overstay fee and extra hours if expected checkout is exceeded', async () => {
+    it('should have valid overstay fee and extra hours if expected checkout is exceeded', async () => {
       await new Room({
         room_type: 'deluxe',
         hourly_rate: 150000,
@@ -162,6 +162,27 @@ describe('Admin routes', () => {
         '/api/v1/admin/calcOverstayByCustomer?customerId=xyz'
       )
       expect(response.status).toEqual(400)
+    })
+
+    it('does not return an error if the customer id is correct', async () => {
+      await new Room({
+        room_type: 'deluxe',
+        hourly_rate: 150000,
+        weekday_percent: 7,
+        weekend_percent: 10,
+      }).save()
+
+      const createdReservation = await new Reservation({
+        room_type: 'deluxe',
+        customer_id: '12323',
+        hourly_rate: 150000,
+        expected_checkin_time: '2020-12-12 12:00',
+        expected_checkout_time: removeDays(1).toISOString(),
+      }).save()
+      const response = await request(app).get(
+        '/api/v1/admin/calcOverstayByCustomer?customerId=12323'
+      )
+      expect(response.status).not.toEqual(400)
     })
   })
 })
