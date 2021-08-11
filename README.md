@@ -12,7 +12,6 @@
 8. [Overstay Fee Algorithm(Important)](#overstay-fee-algorithm)
 9. [TypeScript Installation(Optional)](#typescript-installation)
 10. [Jest Installation(Optional)](#jest-installation)
-11. [API Docs(Optional)](#api-docs)
 
 ## Introduction
 
@@ -50,25 +49,30 @@ This implementation is based on the following assumptions:
 
 ## How to Run the Application
 
-- Ensure that you have internet connection.
-- Clone the repository
-- Ensure that you have Docker running on your system: [Download Docker](https://www.docker.com/products/docker-desktop)
-- Navigate to the project root an run:
+- **Ensure that you have internet connection.**
+- **Clone the repository**:
+
+  ```bash
+  git clone https://github.com/philz-stizles/hospitality-system.git
+  ```
+
+- **Ensure that you have Docker running on your system**: [Download Docker](https://www.docker.com/products/docker-desktop)
+- **Navigate to the project root an run**:
 
   ```bash
   docker-compose up
   ```
 
-  When you run the above command, docker will spin up the application container as well as a mongodb container
+  When you run the above command, docker will spin up the application container as well as a mongodb container.
+  You need to wait until all containers are up and running.
 
-- Application would be available at:
+  Application would be available at:
 
   ```lang-http
   http://localhost:3000
   ```
 
-- Retrieve seeded reservations:
-  Use the following endpoint to retrieve a list of seeded reservations:-
+- **Retrieve seeded reservations**: Use the following endpoint to retrieve a list of seeded reservations:-
 
   ```lang-http
   GET http://localhost:3000/api/v1/reservations
@@ -76,15 +80,16 @@ This implementation is based on the following assumptions:
 
   You can then select either a reservation_id or a customer_id to use in the "Calculate Overstay fee" step
 
-- Retrieve seeded rooms(Optional):
-  Use the following endpoint to retrieve a list of seeded rooms:-
+- **Retrieve seeded rooms(Optional)**: Use the following endpoint to retrieve a list of seeded rooms:-
 
   ```lang-http
   GET http://localhost:3000/api/v1/rooms
 
   ```
 
-- Calculate Overstay fee:
+  You might want to view information about existing room types
+
+- **Calculate Overstay fee**:
 
   - Option 1: Using reservation_id, use the following endpoint to retrieve a list of seeded rooms:-
 
@@ -213,7 +218,6 @@ to be able to visualize from top to bottom
   ```json
   "scripts": {
     "start": "ts-node-dev src/index.ts",
-    ...
   },
   ```
 
@@ -233,9 +237,9 @@ to be able to visualize from top to bottom
 
 - Add your configs to 'jest.config.js'
 
-  ```js
+  ```json
   module.exports = {
-    ...,
+    verbose: true,
     setupFilesAfterEnv: ['./src/test/setup.ts'],
   }
   ```
@@ -244,13 +248,9 @@ to be able to visualize from top to bottom
 
   ```json
   "scripts": {
-    ...,
     "test": "jest",
     "test:watch": "jest --watchAll --no-cache",
     "test:coverage": "jest --coverage"
-    },
-    ...
+    }
   },
   ```
-
-## API Docs

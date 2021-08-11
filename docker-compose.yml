@@ -4,7 +4,7 @@ services:
     container_name: hospitality-system
     restart: always
     build:
-      dockerfile: Dockerfile.dev # The name of the docker config file
+      dockerfile: Dockerfile # The name of the docker config file
       context: ./ # Where the docker config file is located
     volumes:
       # - /app/node_modules
