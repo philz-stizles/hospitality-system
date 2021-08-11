@@ -13,7 +13,7 @@ export const calcOverstayByReservation = async (
 ): Promise<Response | void> => {
   const { reservationId } = req.query
 
-  // Check if customer id query param is undefined
+  // Check if reservation id query param is undefined
   if (!reservationId) {
     throw new BadRequestError('Reservation id is required')
   }
@@ -40,6 +40,7 @@ export const calcOverstayByReservation = async (
   const now = new Date()
   const expectedCheckout = new Date(expected_checkout_time)
 
+  // Initialize overdue fee
   let overdueFee = 0
 
   if (now.getTime() <= expectedCheckout.getTime()) {
@@ -55,15 +56,19 @@ export const calcOverstayByReservation = async (
       message: 'Reservation is still active',
     })
   } else {
+    // Calculate number of overdue hours since expected checkout
     const overdueHours = Math.ceil(
       (now.getTime() - expectedCheckout.getTime()) / 3600000
     )
 
+    // Initialize current overstayed date to equal expected checkout date
     let currentOverstayedDate = expectedCheckout
 
+    // Initialize weekends where 0 is Sunday and 6 is Saturday
+    // 0 = Sun | 1 = Mon |  2 = Tues | 3 = Wed | 4 = Thur | 5 = Fri | 6 = Sat
     const weekends = [0, 6]
 
-    // for each hour
+    // Calculate fee per hour overstayed
     for (let hr = overdueHours; hr > 0; hr--) {
       // initialize current hour fee
       let currentHourFee = 0

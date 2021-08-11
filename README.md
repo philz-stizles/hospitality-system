@@ -4,12 +4,12 @@
 
 1. [Introduction](#introduction)
 2. [Assumptions](#assumptions)
-3. [Observations & Modifications](#observations-&-modifications)
-4. [End Points of Interest](#end-points-of-interest)
-5. [Corner Cases](#corner-cases)
-6. [How to Run the Application](#how-to-run-the-application)
-7. [How to Run Tests](#how-to-run-tests)
-8. [Overstay Fee Algorithm(Important)](#overstay-fee-algorithm)
+3. [End Points of Interest](#end-points-of-interest)
+4. [Corner Cases](#corner-cases)
+5. [How to Run the Application](#how-to-run-the-application)
+6. [How to Run Tests](#how-to-run-tests)
+7. [Overstay Fee Algorithm using Customer Id(Important)](#overstay-fee-algorithm-using-customer-id)
+8. [Overstay Fee Algorithm using Reservation Id(Important)](#overstay-fee-algorithm-using-reservation-id)
 9. [TypeScript Installation(Optional)](#typescript-installation)
 10. [Jest Installation(Optional)](#jest-installation)
 
@@ -26,16 +26,6 @@ This implementation is based on the following assumptions:
 - Each room has both a weekday and a weekend rate.
 - Each room has one hourly rate.
 
-## Observations & Modifications
-
-- Customers:
-  - In a real world scenario, it would be helpful to differentiate reservations for which a customer
-    has cleared their "overstay fees" from those which have not been cleared.
-  - Thus, an active field has been added to support the demonstration. When the active field is true, the
-    customer has either not exceeded expected_checkout_time or has not paid for over stay. When the active
-    field is false, the user has either checked out with no overstay fees to pay, or has checked out as well
-    as cleared the overstay fees.
-
 ## End Points of Interest
 
 - Calculate Overstay Fee by Reservation['/api/v1/admin/calcOverstayReservation']: An administrator can calculate
@@ -47,6 +37,9 @@ This implementation is based on the following assumptions:
 
 ## Corner Cases
 
+It is possible for a customer to make a reservation on a weekday and overstay into a weekend day.
+Thus, such a case must be factored into any algorithm implemented to calculate overstay
+
 ## How to Run the Application
 
 - **Ensure that you have internet connection.**
@@ -57,6 +50,7 @@ This implementation is based on the following assumptions:
   ```
 
 - **Ensure that you have Docker running on your system**: [Download Docker](https://www.docker.com/products/docker-desktop)
+- **Ensure that port 3000 is not in use**.
 - **Navigate to the project root an run**:
 
   ```bash
@@ -130,7 +124,7 @@ This implementation is based on the following assumptions:
   npm run test:coverage
   ```
 
-## Overstay Fee Algorithm
+## Overstay Fee Algorithm using Customer Id
 
 Note: The following algorithm can be easily simplified or modified. For example, many
 of the verbs within the algorithm can be extracted into their on methods and reused
@@ -138,18 +132,40 @@ to conform with the laws of Segregation etc. However for demonstration purposes,
 to be able to visualize from top to bottom
 
 ```lang-js
-  if (now.getTime() <= expectedCheckout.getTime()) {
-      return res.json({
-        status: true,
-        data: {
-          expected_checkout_time,
-          hours_left: (expectedCheckout.getTime() - now.getTime()) / 3600000,
-        },
-        message: 'Reservation is still active',
+  // Check if reservation exists
+  const customerReservations = await Reservation.find(filter)
+
+  let total_overdue_hours = 0
+  let total_overdue_fee = 0
+  const customerReservationDetails: any = []
+
+  for (const reservation of customerReservations) {
+    const { room_type, expected_checkout_time, _id } = reservation
+
+    // Check if room exists
+    const existingRoom = await Room.findOne({
+      room_type,
+    })
+    if (!existingRoom) {
+      continue
+    }
+
+    const { weekday_percent, weekend_percent } = existingRoom
+
+    const now = new Date()
+    const expectedCheckout = new Date(expected_checkout_time)
+    let overdueHours = 0
+    let overdueFee = 0
+
+    if (now.getTime() <= expectedCheckout.getTime()) {
+      customerReservationDetails.push({
+        reservation_id: _id,
+        overdueHours,
+        overdueFee,
       })
+      continue
     } else {
-      let overdueFee = 0
-      const extraHours = Math.ceil(
+      overdueHours = Math.ceil(
         (now.getTime() - expectedCheckout.getTime()) / 3600000
       )
 
@@ -158,7 +174,7 @@ to be able to visualize from top to bottom
       const weekends = [0, 6]
 
       // for each hour
-      for (let hr = extraHours; hr > 0; hr--) {
+      for (let hr = overdueHours; hr > 0; hr--) {
         // initialize current hour fee
         let currentHourFee = 0
 
@@ -170,27 +186,129 @@ to be able to visualize from top to bottom
 
         // make calculations based on the day of the week
         if (weekends.includes(dayOfWeek)) {
-          currentHourFee =
-            existingReservation.hourly_rate * (weekend_percent / 100)
+          currentHourFee = reservation.hourly_rate * (weekend_percent / 100)
         } else {
-          currentHourFee =
-            existingReservation.hourly_rate * (weekday_percent / 100)
+          currentHourFee = reservation.hourly_rate * (weekday_percent / 100)
         }
 
         // add to grand total
         overdueFee += currentHourFee
       }
 
-      return res.json({
-        status: true,
-        data: {
-          customer_id,
-          extra_hours: extraHours,
-          overdue_fee: overdueFee,
-        },
-        message: 'Success',
+      total_overdue_hours += overdueHours
+      total_overdue_fee += overdueFee
+
+      customerReservationDetails.push({
+        reservation_id: _id,
+        overdueHours,
+        overdueFee,
       })
     }
+  }
+
+  res.json({
+    status: true,
+    data: {
+      customer_id: parsed_customer_id,
+      total_overdue_hours,
+      total_overdue_fee,
+      summary: customerReservationDetails,
+    },
+    message: 'Customer over-stay fee retrieved successfully',
+  })
+```
+
+## Overstay Fee Algorithm using Reservation Id
+
+Note: The following algorithm can be easily simplified or modified. For example, many
+of the verbs within the algorithm can be extracted into their on methods and reused
+to conform with the laws of Segregation etc. However for demonstration purposes, so as
+to be able to visualize from top to bottom
+
+```lang-js
+   // Check if reservation exists
+  const existingReservation = await Reservation.findById(reservationId)
+  if (!existingReservation) {
+    throw new NotFoundError()
+  }
+
+  const { customer_id, room_type, expected_checkout_time } = existingReservation
+
+  // Check if room exists
+  const existingRoom = await Room.findOne({
+    room_type,
+  })
+  if (!existingRoom) {
+    throw new NotFoundError()
+  }
+
+  // Extract week daily rates from room
+  const { weekday_percent, weekend_percent } = existingRoom
+
+  const now = new Date()
+  const expectedCheckout = new Date(expected_checkout_time)
+
+  // Initialize overdue fee
+  let overdueFee = 0
+
+  if (now.getTime() <= expectedCheckout.getTime()) {
+    return res.json({
+      status: true,
+      data: {
+        customer_id,
+        overdue_fee: overdueFee,
+        extra_hours: 0,
+        expected_checkout_time,
+        hours_left: (expectedCheckout.getTime() - now.getTime()) / 3600000,
+      },
+      message: 'Reservation is still active',
+    })
+  } else {
+    // Calculate number of overdue hours since expected checkout
+    const overdueHours = Math.ceil(
+      (now.getTime() - expectedCheckout.getTime()) / 3600000
+    )
+
+    // Initialize current overstayed date to equal expected checkout date
+    let currentOverstayedDate = expectedCheckout
+
+    // Initialize weekends where 0 is Sunday and 6 is Saturday
+    // 0 = Sun | 1 = Mon |  2 = Tues | 3 = Wed | 4 = Thur | 5 = Fri | 6 = Sat
+    const weekends = [0, 6]
+
+    // Calculate fee per hour overstayed
+    for (let hr = overdueHours; hr > 0; hr--) {
+      // initialize current hour fee
+      let currentHourFee = 0
+
+      // add hour to current overstayed date
+      currentOverstayedDate = addHoursToDate(currentOverstayedDate, 1)
+
+      // check the day of the week
+      const dayOfWeek = currentOverstayedDate.getDay()
+
+      // make calculations based on the day of the week
+      if (weekends.includes(dayOfWeek)) {
+        currentHourFee =
+          existingReservation.hourly_rate * (weekend_percent / 100)
+      } else {
+        currentHourFee =
+          existingReservation.hourly_rate * (weekday_percent / 100)
+      }
+
+      // add to grand total
+      overdueFee += currentHourFee
+    }
+
+    return res.json({
+      status: true,
+      data: {
+        customer_id,
+        extra_hours: overdueHours,
+        overdue_fee: overdueFee,
+      },
+      message: 'Reservation over-stay fee retrieved successfully',
+    })
 ```
 
 ## Typescript Installation
