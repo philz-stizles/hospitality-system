@@ -87,7 +87,7 @@ Thus, such a case must be factored into any algorithm implemented to calculate o
 
 - **Calculate Overstay fee**:
 
-  - Option 1: Using reservation_id, use the following endpoint to retrieve a list of seeded rooms:-
+  - Option 1: Using reservation_id, use the following endpoint to calculate overstay fee:-
 
     ```lang-http
     GET http://localhost:3000/api/v1/admin/calcOverstayByReservation?reservationId=insert-reservation_id-here
@@ -99,7 +99,7 @@ Thus, such a case must be factored into any algorithm implemented to calculate o
     GET http://localhost:3000/api/v1/admin/calcOverstayByReservation?reservationId=61128fd10f5442a360ebfd8d
     ```
 
-  - Option 2: Using customer_id, use the following endpoint to retrieve a list of seeded rooms:-
+  - Option 2: Using customer_id, use the following endpoint to calculate overstay fee:-
 
     ```lang-http
     GET http://localhost:3000/api/v1/admin/calcOverstayByCustomer?customerId=insert-customer_id-here

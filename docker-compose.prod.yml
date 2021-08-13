@@ -10,10 +10,11 @@ services:
     #   # - /app/node_modules
     #   - ./:/app
     ports:
-      - '3000:3000'
+      - '3000:80'
     links:
       - mongo
     environment:
+      - PORT=80
       - MONGODB_URI=mongodb://mongo:27017/HospitalityDevDB
       - JWT_AUTH_SECRET=nh7dd4456vhbgkjvdDWQZXMKOY6FDEAmkbZMOPI
   mongo:
